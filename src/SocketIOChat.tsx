@@ -1,34 +1,42 @@
 // src/SocketIOChat.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
 type Message = string;
 
-const socket: Socket = io("https://socket-notification-test.vercel.app/");
+const SOCKET_SERVER_URL = "https://socket-notification-test.vercel.app";
 
-interface SocketIOChatProps {
-  onNewMessage?: (msg: Message) => void;
-}
-
-const SocketIOChat: React.FC<SocketIOChatProps> = ({ onNewMessage }) => {
+const SocketIOChat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState<string>("");
+  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    socket.on("message", (msg: Message) => {
+    // Conecta ao servidor com WebSocket direto
+    socketRef.current = io(SOCKET_SERVER_URL, {
+      transports: ["websocket"],
+    });
+
+    socketRef.current.on("connect", () => {
+      console.log("✅ Conectado ao servidor Socket.IO");
+    });
+
+    socketRef.current.on("disconnect", () => {
+      console.log("❌ Desconectado do servidor Socket.IO");
+    });
+
+    socketRef.current.on("message", (msg: Message) => {
       setMessages((prev) => [...prev, msg]);
-      onNewMessage?.(msg); // 🔔 Dispara callback para notificaçãoc
-      console.log(msg);
     });
 
     return () => {
-      socket.off("message");
+      socketRef.current?.disconnect();
     };
   }, []);
 
   const sendMessage = () => {
     if (input.trim()) {
-      socket.emit("message", input);
+      socketRef.current?.emit("message", input);
       setInput("");
     }
   };
@@ -36,15 +44,13 @@ const SocketIOChat: React.FC<SocketIOChatProps> = ({ onNewMessage }) => {
   return (
     <div style={{ marginTop: "2rem" }}>
       <h2>Chat com Socket.IO</h2>
-      <div>
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Digite uma mensagem"
-        />
-        <button onClick={sendMessage}>Enviar</button>
-      </div>
+      <input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Digite uma mensagem"
+      />
+      <button onClick={sendMessage}>Enviar</button>
       <ul style={{ marginTop: "1rem" }}>
         {messages.map((msg, index) => (
           <li key={index}>{msg}</li>
