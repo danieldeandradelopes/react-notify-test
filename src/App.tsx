@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
+import SocketIOChat from "./SocketIOChat";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -12,44 +13,9 @@ function App() {
     useState(false);
   const [debugInfo, setDebugInfo] = useState<string>("");
 
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const socketRef = useRef(null);
-
   useEffect(() => {
     registerServiceWorker();
     checkNotificationSupport();
-  }, []);
-
-  useEffect(() => {
-    // Cria a conexão com o WebSocket
-    const socket = new WebSocket(
-      "wss://demo.piesocket.com/v3/channel_123?api_key=VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9VRiaV&notify_self"
-    );
-
-    socket.onopen = () => {
-      console.log("WebSocket conectado");
-    };
-
-    socket.onmessage = (event) => {
-      const message = event.data;
-      setMessages((prevMessages) => [...prevMessages, message]);
-    };
-
-    socket.onerror = (error) => {
-      console.error("Erro no WebSocket:", error);
-    };
-
-    socket.onclose = () => {
-      console.log("WebSocket desconectado");
-    };
-
-    socketRef.current = socket;
-
-    // Limpa a conexão ao desmontar
-    return () => {
-      socket.close();
-    };
   }, []);
 
   const registerServiceWorker = async () => {
@@ -231,13 +197,10 @@ function App() {
             {debugInfo}
           </pre>
         </div>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        <SocketIOChat
+          onNewMessage={(msg) => showNotification("Nova mensagem!", msg)}
+        />
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   );
 }
