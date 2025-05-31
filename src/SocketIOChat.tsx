@@ -23,7 +23,7 @@ const SocketIOChat: React.FC<SocketIOChatProps> = ({ onNewMessage }) => {
     return () => {
       socket.off("message");
     };
-  }, [onNewMessage]);
+  }, []);
 
   const sendMessage = () => {
     if (input.trim()) {
