@@ -17,7 +17,8 @@ const SocketIOChat: React.FC<SocketIOChatProps> = ({ onNewMessage }) => {
   useEffect(() => {
     socket.on("message", (msg: Message) => {
       setMessages((prev) => [...prev, msg]);
-      onNewMessage?.(msg); // 🔔 Dispara callback para notificação
+      onNewMessage?.(msg); // 🔔 Dispara callback para notificaçãoc
+      console.log(msg);
     });
 
     return () => {
